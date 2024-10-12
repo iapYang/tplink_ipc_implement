@@ -1,0 +1,10 @@
+{
+    "domain": "tplink_ipc",
+    "name": "TP-Link IPC",
+    "version": "1.0",
+    "documentation": "https://github.com/iapYang/tplink_ipc",
+    "requirements": ["asn1crypto", "rsa", "aiohttp"],
+    "dependencies": [],
+    "codeowners": ["@iapYang"],
+    "config_flow": true
+}
