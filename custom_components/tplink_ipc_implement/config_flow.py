@@ -1,6 +1,6 @@
-"""tl_ipc integration config flow.
+"""tplink_ipc_implement integration config flow.
 
-This module provides the config flow functionality for the tl_ipc integration.
+This module provides the config flow functionality for the tplink_ipc_implement integration.
 """
 
 import voluptuous as vol
@@ -11,14 +11,14 @@ from homeassistant.data_entry_flow import FlowResult
 from .const import DOMAIN
 
 
-class TLIpcConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class TPLinkIPCConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """处理配置流的类."""
 
     async def async_step_user(self, user_input=None) -> FlowResult:
         """处理用户输入."""
         errors = {}
         if user_input is not None:
-            return self.async_create_entry(title="TL IPC", data=user_input)
+            return self.async_create_entry(title="TPLink IPC", data=user_input)
 
         data_schema = vol.Schema(
             {

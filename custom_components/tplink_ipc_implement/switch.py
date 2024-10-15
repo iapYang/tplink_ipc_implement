@@ -1,6 +1,6 @@
-"""TL IPC switch entity.
+"""tplink_ipc_implement switch entity.
 
-This module contains the TLIpcSwitch class which represents a TL IPC switch entity.
+This module contains the TPLinkIPCLensMaskSwitch class which represents a tplink_ipc_implement switch entity.
 """
 
 import asyncio
@@ -14,7 +14,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .tl_ipc_core import TLIpcCore
+from .tplink_ipc_implement_core import TPLinkIPCCore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
         [
-            TLIpcSwitch(
+            TPLinkIPCLensMaskSwitch(
                 data["ip"],
                 data["port"],
                 data["username"],
@@ -38,8 +38,8 @@ async def async_setup_entry(
     )
 
 
-class TLIpcSwitch(SwitchEntity):
-    """表示TL IPC开关的实体."""
+class TPLinkIPCLensMaskSwitch(SwitchEntity):
+    """表示TPLink IPC开关的实体."""
 
     def __init__(
         self,
@@ -50,17 +50,17 @@ class TLIpcSwitch(SwitchEntity):
         entry_id: str,
         entry_title: str,
     ) -> None:
-        """初始化TL IPC开关实体."""
+        """初始化TPLink IPC开关实体."""
         self._ip = ip
         self._port = port
         self._username = username
         self._password = password
         self._is_on = False
-        self._tl_ipc_core = TLIpcCore(username, password, ip, port)
+        self._tplink_ipc_implement_core = TPLinkIPCCore(username, password, ip, port)
         self._key = entry_id
         self._title = entry_title
         self._attr_unique_id = "{}.{}_{}".format(
-            DOMAIN, "tl_ipc_lens_mask", self._key
+            DOMAIN, "tplink_ipc_implement_lens_mask", self._key
         ).lower()
         self.entity_id = self._attr_unique_id
         self._update_task = None
@@ -94,7 +94,7 @@ class TLIpcSwitch(SwitchEntity):
     async def async_turn_on(self, **kwargs) -> None:
         """打开开关."""
         _LOGGER.debug("Turning on the switch")
-        await self._tl_ipc_core.post_data(
+        await self._tplink_ipc_implement_core.post_data(
             json.dumps(
                 {"method": "set", "lens_mask": {"lens_mask_info": {"enabled": "on"}}}
             )
@@ -105,7 +105,7 @@ class TLIpcSwitch(SwitchEntity):
     async def async_turn_off(self, **kwargs) -> None:
         """关闭开关."""
         _LOGGER.debug("Turning off the switch")
-        await self._tl_ipc_core.post_data(
+        await self._tplink_ipc_implement_core.post_data(
             json.dumps(
                 {"method": "set", "lens_mask": {"lens_mask_info": {"enabled": "off"}}}
             )
@@ -126,7 +126,7 @@ class TLIpcSwitch(SwitchEntity):
     async def _update_is_on(self):
         """更新is_on状态."""
         _LOGGER.debug("Updating the switch status")
-        data = await self._tl_ipc_core.post_data(
+        data = await self._tplink_ipc_implement_core.post_data(
             json.dumps({"method": "get", "lens_mask": {"name": ["lens_mask_info"]}})
         )
         self._is_on = (

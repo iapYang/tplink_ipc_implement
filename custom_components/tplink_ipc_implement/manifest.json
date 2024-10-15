@@ -1,12 +1,11 @@
 {
-    "domain": "tl_ipc",
-    "name": "TL IPC",
+    "domain": "tplink_ipc_implement",
+    "name": "TPLink IPC Implement",
     "version": "0.0.1",
-    "documentation": "https://github.com/iapYang/tl_ipc",
-    "issue_tracker": "https://github.com/iapYang/tl_ipc/issues",
+    "documentation": "https://github.com/iapYang/tplink_ipc_implement",
+    "issue_tracker": "https://github.com/iapYang/tplink_ipc_implement/issues",
     "requirements": ["asn1crypto", "rsa", "aiohttp"],
     "dependencies": [],
     "codeowners": ["@iapYang"],
-    "config_flow": true,
-    "icon": "mdi:camera"
+    "config_flow": true
 }

@@ -1,6 +1,6 @@
-"""tl_ipc integration consts.
+"""tplink_ipc_implement integration consts.
 
-Constants for the TL IPC integration.
+Constants for the tplink_ipc_implement integration.
 """
 
-DOMAIN = "tl_ipc"
+DOMAIN = "tplink_ipc_implement"
