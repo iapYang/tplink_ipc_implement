@@ -1,19 +1,27 @@
-import logging
+"""TP-Link IPC core.
+
+This module provides the core functionality for interacting with TP-Link IPC devices.
+"""
+
 import base64
+import binascii
 import json
+import logging
 from urllib.parse import unquote
 
+import aiohttp
+from asn1crypto.keys import PublicKeyInfo
 import requests
 import rsa
-from asn1crypto.keys import PublicKeyInfo
-import binascii
-import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class TplinkIpcCore:
-    def __init__(self, username: str, password: str, ip: str, port: int):
+    """TP-Link IPC核心类."""
+
+    def __init__(self, username: str, password: str, ip: str, port: int) -> None:
+        """初始化TP-Link IPC核心类."""
         self._username = username
         self._password = password
         self._base_url = f"http://{ip}:{port}"
@@ -21,22 +29,22 @@ class TplinkIpcCore:
     async def post_data(self, data):
         """发送数据到TP-Link IPC."""
         try:
-            await post_data(
+            return await post_data(
                 self._base_url,
                 data,
                 await get_stok(self._base_url, self._username, self._password),
             )
-            _LOGGER.debug("Data posted successfully")
         except requests.exceptions.RequestException as e:
-            _LOGGER.error(f"Failed to post data: {e}")
+            _LOGGER.error("Failed to post data: %s", e)
 
 
 def tp_encrypt(password):
+    """Encrypt the password using a custom algorithm."""
     a = "RDpbLfCPsJZ7fiv"
     c = "yLwVl0zKqws7LgKPRQ84Mdt708T1qQ3Ha7xv3H7NyU84p21BriUWBU43odz3iP4rBL3cD02KZciXTysVXiV8ngg6vL48rPJyAUw0HurW20xqxv9aYb4M9wK1Ae0wlro510qXeU07kV57fQMc8L6aLgMLwygtc0F10a0Dg70TOoouyFhdysuRMO51yY5ZlOZZLEal1h0t9YQW0Ko7oBwmCAHoic4HYbUyVeU3sfQ1xtXcPcf1aT303wAQhv66qzW "
     b = password
     e = ""
-    f, g, h, k, l = 187, 187, 187, 187, 187
+    f, g, h, k, var_l = 187, 187, 187, 187, 187
     n = 187
     g = len(a)
     h = len(b)
@@ -45,21 +53,21 @@ def tp_encrypt(password):
         f = g
     else:
         f = h
-    for p in list(range(0, f)):
-        n = l = 187
+    for p in list(range(f)):
+        n = var_l = 187
         if p >= g:
             n = ord(b[p])
+        elif p >= h:
+            var_l = ord(a[p])
         else:
-            if p >= h:
-                l = ord(a[p])
-            else:
-                l = ord(a[p])
-                n = ord(b[p])
-        e += c[(l ^ n) % k]
+            var_l = ord(a[p])
+            n = ord(b[p])
+        e += c[(var_l ^ n) % k]
     return e
 
 
 def convert_rsa_key(s):
+    """Convert the RSA key from base."""
     # b_str = base64.b64decode(s)
     # if len(b_str) < 162:
     #     return False
@@ -80,6 +88,7 @@ def convert_rsa_key(s):
 
 
 def rsa_encrypt(string, pubkey):
+    """Encrypt the string using the RSA public key."""
     key = convert_rsa_key(pubkey)
     modulus = int(key[0], 16)
     exponent = int(key[1], 16)
@@ -89,21 +98,22 @@ def rsa_encrypt(string, pubkey):
 
 
 async def get_stok(url, username, password):
-    print("-get rsa and nonce")
+    """Get the stok value."""
+    _LOGGER.debug("--get rsa and nonce")
     j = await post_data(url, json.dumps({"method": "do", "login": {}}))
     key = unquote(j["data"]["key"])
     nonce = str(j["data"]["nonce"])
-    print("rsa: ", key)
-    print("nonce: ", nonce)
+    _LOGGER.debug("rsa: %s", key)
+    _LOGGER.debug("nonce: %s", nonce)
 
-    print("--encrypt password by tp")
+    _LOGGER.debug("--encrypt password by tp")
     tp_password = tp_encrypt(password)
     tp_password += ":" + nonce
-    print("tp_password: ", tp_password)
+    _LOGGER.debug("tp_password: %s", tp_password)
 
-    print("--encrypt password by rsa")
+    _LOGGER.debug("--encrypt password by rsa")
     rsa_password = rsa_encrypt(tp_password, key)
-    print("rsa_password: ", rsa_password)
+    _LOGGER.debug("rsa_password: %s", rsa_password)
 
     d = {
         "method": "do",
@@ -113,17 +123,28 @@ async def get_stok(url, username, password):
             "password": rsa_password.decode(),
         },
     }
-    print("--login")
+    _LOGGER.debug("--login")
     j = await post_data(url, json.dumps(d))
-    stok = j["stok"]
-    return stok
+    return j["stok"]
 
 
 async def post_data(base_url, data, stok=""):
+    """Post data to the TP-Link IPC."""
     url = base_url + (("/stok=" + stok + "/ds") if stok else "")
-    print("post: ", url, " data: ", data)
+    _LOGGER.debug("post: %s data: %s", url, data)
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, data=data) as response:
-            print("response: ", str(response.status), " ", await response.text())
-            return await response.json()
+    # headers = {
+    #     "Content-Type": "application/json; charset=UTF-8",
+    #     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+    #     "Accept": "application/json, text/javascript, */*; q=0.01",
+    #     "X-Requested-With": "XMLHttpRequest",
+    #     "Referer": base_url + "/",
+    #     "Content-Length": str(len(data)),
+    # }
+
+    async with (
+        aiohttp.ClientSession() as session,
+        session.post(url, data=data) as response,
+    ):
+        _LOGGER.debug("response: %s %s", str(response.status), await response.text())
+        return await response.json()

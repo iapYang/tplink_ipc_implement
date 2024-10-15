@@ -1,3 +1,8 @@
+"""tplink_ipc integration init.
+
+This module provides the setup and unload functionality for the tplink_ipc integration.
+"""
+
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -14,7 +19,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = entry.data
 
     hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "switch")
+        hass.config_entries.async_forward_entry_setups(entry, ["switch"])
     )
 
     return True

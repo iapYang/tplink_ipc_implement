@@ -6,5 +6,6 @@
     "requirements": ["asn1crypto", "rsa", "aiohttp"],
     "dependencies": [],
     "codeowners": ["@iapYang"],
-    "config_flow": true
+    "config_flow": true,
+    "icon": "mdi:camera"
 }
