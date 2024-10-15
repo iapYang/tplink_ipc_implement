@@ -1,6 +1,6 @@
-"""tplink_ipc integration init.
+"""tl_ipc integration init.
 
-This module provides the setup and unload functionality for the tplink_ipc integration.
+This module provides the setup and unload functionality for the tl_ipc integration.
 """
 
 import logging

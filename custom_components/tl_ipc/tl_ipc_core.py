@@ -1,6 +1,6 @@
-"""TP-Link IPC core.
+"""TL IPC core.
 
-This module provides the core functionality for interacting with TP-Link IPC devices.
+This module provides the core functionality for interacting with TL IPC devices.
 """
 
 import base64
@@ -17,17 +17,17 @@ import rsa
 _LOGGER = logging.getLogger(__name__)
 
 
-class TplinkIpcCore:
-    """TP-Link IPC核心类."""
+class TLIpcCore:
+    """TL IPC核心类."""
 
     def __init__(self, username: str, password: str, ip: str, port: int) -> None:
-        """初始化TP-Link IPC核心类."""
+        """初始化TL IPC核心类."""
         self._username = username
         self._password = password
         self._base_url = f"http://{ip}:{port}"
 
     async def post_data(self, data):
-        """发送数据到TP-Link IPC."""
+        """发送数据到TL IPC."""
         try:
             return await post_data(
                 self._base_url,
@@ -129,7 +129,7 @@ async def get_stok(url, username, password):
 
 
 async def post_data(base_url, data, stok=""):
-    """Post data to the TP-Link IPC."""
+    """Post data to the TL IPC."""
     url = base_url + (("/stok=" + stok + "/ds") if stok else "")
     _LOGGER.debug("post: %s data: %s", url, data)
 
