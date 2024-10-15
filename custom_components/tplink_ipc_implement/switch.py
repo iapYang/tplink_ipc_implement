@@ -86,9 +86,7 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self._key)},
             name=self._title,
-            manufacturer="TL",
-            model="IPC",
-            sw_version="0.0.1",
+            manufacturer="TP-Link",
         )
 
     async def async_turn_on(self, **kwargs) -> None:
