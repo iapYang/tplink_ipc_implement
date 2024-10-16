@@ -29,5 +29,5 @@ logger:
     custom_components.tplink_ipc_implement: debug
 ```
 
-## Thanks
-`likaci` : [mercury-ipc-control](https://github.com/likaci/mercury-ipc-control)
+## 感谢
+`likaci` : [水星 Mercury MIPC251C-4 网络摄像头 ONVIF 与 PTZ 云台控制](https://blog.xiazhiri.com/Mercury-MIPC251C-4-Reverse)
