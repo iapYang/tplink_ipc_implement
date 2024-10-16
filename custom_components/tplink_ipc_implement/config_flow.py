@@ -10,6 +10,7 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import DEFAULT_PORT, DEFAULT_USERNAME, DOMAIN
+from .core import TPLinkIPCCore
 
 
 class TPLinkIPCConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -107,7 +108,7 @@ class TPLinkIPCOptionsFlowHandler(config_entries.OptionsFlow):
             # 获取hass实例并调用update方法
             entry_id = self.config_entry.entry_id
             if DOMAIN in self.hass.data and entry_id in self.hass.data[DOMAIN]:
-                ipc_core = self.hass.data[DOMAIN][entry_id]["core"]
+                ipc_core: type[TPLinkIPCCore] = self.hass.data[DOMAIN][entry_id]["core"]
                 ipc_core.update(
                     username=user_input["username"],
                     password=user_input["password"],
