@@ -1,12 +1,12 @@
 {
     "domain": "tplink_ipc_implement",
     "name": "TPLink IPC Implement",
-    "version": "0.0.1",
-    "documentation": "https://github.com/iapYang/tplink_ipc_implement",
-    "issue_tracker": "https://github.com/iapYang/tplink_ipc_implement/issues",
-    "requirements": ["asn1crypto", "rsa", "aiohttp"],
-    "dependencies": [],
     "codeowners": ["@iapYang"],
     "config_flow": true,
-    "iot_class": "local_polling"
+    "dependencies": [],
+    "documentation": "https://github.com/iapYang/tplink_ipc_implement",
+    "iot_class": "local_polling",
+    "issue_tracker": "https://github.com/iapYang/tplink_ipc_implement/issues",
+    "requirements": ["asn1crypto", "rsa", "aiohttp"],
+    "version": "0.0.1"
 }
