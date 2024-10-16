@@ -69,7 +69,7 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
     @property
     def name(self) -> str:
         """返回实体的名称."""
-        return self._title + " Lens Mask"
+        return "Lens Mask"
 
     @property
     def is_on(self) -> bool:
