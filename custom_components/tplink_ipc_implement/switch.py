@@ -14,7 +14,8 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .tplink_ipc_implement_core import TPLinkIPCCore
+from .core import TPLinkIPCCore
+from .device import TPLinkIPCDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,15 +25,34 @@ async def async_setup_entry(
 ) -> None:
     """设置开关实体."""
     data = hass.data[DOMAIN][entry.entry_id]
+
+    tplink_ipc_implement_core = TPLinkIPCCore(
+        data["username"], data["password"], data["ip"], data["port"]
+    )
+
+    device = TPLinkIPCDevice(tplink_ipc_implement_core)
+
+    device_info_data = await device.get_device_info()
+
+    entry_id = entry.entry_id
+
+    # 更新 DeviceInfo
+    device_info = DeviceInfo(
+        identifiers={(DOMAIN, entry.entry_id)},
+        manufacturer=device_info_data.get("manufacturer"),
+        model=device_info_data.get("model"),
+        name=entry.title,
+        sw_version=device_info_data.get("sw_version"),
+        hw_version=device_info_data.get("hw_version"),
+    )
+
     async_add_entities(
         [
             TPLinkIPCLensMaskSwitch(
-                data["ip"],
-                data["port"],
-                data["username"],
-                data["password"],
-                entry.entry_id,
+                entry_id,
                 entry.title,
+                tplink_ipc_implement_core,
+                device_info,
             )
         ]
     )
@@ -43,27 +63,23 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
 
     def __init__(
         self,
-        ip: str,
-        port: int,
-        username: str,
-        password: str,
         entry_id: str,
         entry_title: str,
+        tplink_ipc_implement_core: TPLinkIPCCore,
+        device_info: DeviceInfo,
     ) -> None:
         """初始化TPLink IPC开关实体."""
-        self._ip = ip
-        self._port = port
-        self._username = username
-        self._password = password
         self._is_on = False
-        self._tplink_ipc_implement_core = TPLinkIPCCore(username, password, ip, port)
+        self._tplink_ipc_implement_core = tplink_ipc_implement_core
         self._key = entry_id
-        self._title = entry_title
+        self._device_info = device_info
+        self._title = self._device_info.get("name", entry_title)
         self._attr_unique_id = "{}.{}_{}".format(
             DOMAIN, "tplink_ipc_implement_lens_mask", self._key
         ).lower()
         self.entity_id = self._attr_unique_id
         self._update_task = None
+        print(self._title)
 
     @property
     def name(self) -> str:
@@ -83,11 +99,7 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """返回设备信息."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._key)},
-            name=self._title,
-            manufacturer="TP-Link",
-        )
+        return self._device_info
 
     async def async_turn_on(self, **kwargs) -> None:
         """打开开关."""

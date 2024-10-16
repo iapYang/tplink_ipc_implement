@@ -28,11 +28,14 @@ class TPLinkIPCCore:
 
     async def post_data(self, data):
         """发送数据到TPLink IPC."""
+
+        stok = await get_stok(self._base_url, self._username, self._password)
+
         try:
             return await post_data(
                 self._base_url,
                 data,
-                await get_stok(self._base_url, self._username, self._password),
+                stok,
             )
         except requests.exceptions.RequestException as e:
             _LOGGER.error("Failed to post data: %s", e)
