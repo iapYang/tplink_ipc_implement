@@ -22,20 +22,31 @@ class TPLinkIPCCore:
 
     def __init__(self, username: str, password: str, ip: str, port: int) -> None:
         """初始化TPLink IPC核心类."""
+        self._username = None
+        self._password = None
+        self._base_url = None
+        self._stok = None
+        self.update(username, password, ip, port)
+
+    def update(self, username: str, password: str, ip: str, port: int) -> None:
+        """更新TPLink IPC核心类."""
         self._username = username
         self._password = password
         self._base_url = f"http://{ip}:{port}"
+        self._stok = None
 
     async def post_data(self, data):
         """发送数据到TPLink IPC."""
 
-        stok = await get_stok(self._base_url, self._username, self._password)
+        # 目前观察下来stok的值是固定的，所以这里不再每次都获取
+        if not self._stok:
+            self._stok = await get_stok(self._base_url, self._username, self._password)
 
         try:
             return await post_data(
                 self._base_url,
                 data,
-                stok,
+                self._stok,
             )
         except requests.exceptions.RequestException as e:
             _LOGGER.error("Failed to post data: %s", e)
