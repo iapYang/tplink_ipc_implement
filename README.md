@@ -9,7 +9,7 @@
 
 ## 安装
 
-方法1：下载并复制`custom_components/haier`文件夹到HomeAssistant根目录下的`custom_components`文件夹即可完成安装
+方法1：下载并复制`custom_components/tplink_ipc_implement`文件夹到HomeAssistant根目录下的`custom_components`文件夹即可完成安装
 
 方法2：已经安装了HACS，可以点击按钮快速安装 [![通过HACS添加集成](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=iapyang&repository=tplink_ipc_implement&category=integration)
 
@@ -26,7 +26,7 @@
 logger:
   default: warn
   logs:
-    custom_components.haier: debug
+    custom_components.tplink_ipc_implement: debug
 ```
 
 ## Thanks
