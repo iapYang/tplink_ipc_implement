@@ -26,32 +26,19 @@ async def async_setup_entry(
     """设置开关实体."""
     data = hass.data[DOMAIN][entry.entry_id]
 
-    tplink_ipc_implement_core = TPLinkIPCCore(
+    ipc_core = TPLinkIPCCore(
         data["username"], data["password"], data["ip"], data["port"]
     )
 
-    device = TPLinkIPCDevice(tplink_ipc_implement_core)
+    device = TPLinkIPCDevice(ipc_core, entry)
 
-    device_info_data = await device.get_device_info()
-
-    entry_id = entry.entry_id
-
-    # 更新 DeviceInfo
-    device_info = DeviceInfo(
-        identifiers={(DOMAIN, entry.entry_id)},
-        manufacturer=device_info_data.get("manufacturer"),
-        model=device_info_data.get("model"),
-        name=entry.title,
-        sw_version=device_info_data.get("sw_version"),
-        hw_version=device_info_data.get("hw_version"),
-    )
+    device_info = await device.get_device_info()
 
     async_add_entities(
         [
             TPLinkIPCLensMaskSwitch(
-                entry_id,
-                entry.title,
-                tplink_ipc_implement_core,
+                entry.entry_id,
+                ipc_core,
                 device_info,
             )
         ]
@@ -64,22 +51,20 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
     def __init__(
         self,
         entry_id: str,
-        entry_title: str,
-        tplink_ipc_implement_core: TPLinkIPCCore,
+        ipc_core: TPLinkIPCCore,
         device_info: DeviceInfo,
     ) -> None:
         """初始化TPLink IPC开关实体."""
         self._is_on = False
-        self._tplink_ipc_implement_core = tplink_ipc_implement_core
+        self._ipc_core = ipc_core
         self._key = entry_id
         self._device_info = device_info
-        self._title = self._device_info.get("name", entry_title)
+        self._title = self._device_info.get("name")
         self._attr_unique_id = "{}.{}_{}".format(
             DOMAIN, "tplink_ipc_implement_lens_mask", self._key
         ).lower()
         self.entity_id = self._attr_unique_id
         self._update_task = None
-        print(self._title)
 
     @property
     def name(self) -> str:
@@ -104,7 +89,7 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
     async def async_turn_on(self, **kwargs) -> None:
         """打开开关."""
         _LOGGER.debug("Turning on the switch")
-        await self._tplink_ipc_implement_core.post_data(
+        await self._ipc_core.post_data(
             json.dumps(
                 {"method": "set", "lens_mask": {"lens_mask_info": {"enabled": "on"}}}
             )
@@ -115,7 +100,7 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
     async def async_turn_off(self, **kwargs) -> None:
         """关闭开关."""
         _LOGGER.debug("Turning off the switch")
-        await self._tplink_ipc_implement_core.post_data(
+        await self._ipc_core.post_data(
             json.dumps(
                 {"method": "set", "lens_mask": {"lens_mask_info": {"enabled": "off"}}}
             )
@@ -136,7 +121,7 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
     async def _update_is_on(self):
         """更新is_on状态."""
         _LOGGER.debug("Updating the switch status")
-        data = await self._tplink_ipc_implement_core.post_data(
+        data = await self._ipc_core.post_data(
             json.dumps({"method": "get", "lens_mask": {"name": ["lens_mask_info"]}})
         )
         self._is_on = (
