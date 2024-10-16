@@ -28,3 +28,6 @@ logger:
   logs:
     custom_components.haier: debug
 ```
+
+## Thanks
+`likaci` : [mercury-ipc-control](https://github.com/likaci/mercury-ipc-control)
