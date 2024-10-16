@@ -103,6 +103,18 @@ class TPLinkIPCOptionsFlowHandler(config_entries.OptionsFlow):
             self.hass.config_entries.async_update_entry(
                 self.config_entry, data=user_input
             )
+
+            # 获取hass实例并调用update方法
+            entry_id = self.config_entry.entry_id
+            if DOMAIN in self.hass.data and entry_id in self.hass.data[DOMAIN]:
+                ipc_core = self.hass.data[DOMAIN][entry_id]["core"]
+                ipc_core.update(
+                    username=user_input["username"],
+                    password=user_input["password"],
+                    ip=user_input["ip"],
+                    port=user_input["port"],
+                )  # 调用update方法
+
             return self.async_create_entry(title="", data={})
 
         previous_data = self.config_entry.data

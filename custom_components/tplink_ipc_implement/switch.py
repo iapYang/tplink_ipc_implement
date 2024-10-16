@@ -24,11 +24,7 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """设置开关实体."""
-    data = hass.data[DOMAIN][entry.entry_id]
-
-    ipc_core = TPLinkIPCCore(
-        data["username"], data["password"], data["ip"], data["port"]
-    )
+    ipc_core = hass.data[DOMAIN][entry.entry_id]["core"]
 
     device = TPLinkIPCDevice(ipc_core, entry)
 
