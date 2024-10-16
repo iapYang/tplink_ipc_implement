@@ -35,21 +35,41 @@ class TPLinkIPCCore:
         self._base_url = f"http://{ip}:{port}"
         self._stok = None
 
-    async def post_data(self, data):
+    async def post_data(self, data, times=1):
         """发送数据到TPLink IPC."""
 
-        # 目前观察下来stok的值是固定的，所以这里不再每次都获取
+        if times > 3:
+            _LOGGER.error("Retry %s times", times - 1)
+
+            return None
+
+        # 目前观察下来stok的一段时间是固定的，所以这里不再每次都获取
         if not self._stok:
-            self._stok = await get_stok(self._base_url, self._username, self._password)
+            await self.update_stok()
 
         try:
-            return await post_data(
+            data = await post_data(
                 self._base_url,
                 data,
                 self._stok,
             )
+
+            # 如果stok过期，重新获取stok
+            if data["error_code"] == -40401:
+                self._stok = None
+                return await self.post_data(data, times + 1)
+
+            # 如果有错误，打印错误信息
+            if data["error_code"] != 0:
+                _LOGGER.error("Failed to post data: %s", data)
+            else:
+                return data
         except requests.exceptions.RequestException as e:
             _LOGGER.error("Failed to post data: %s", e)
+
+    async def update_stok(self):
+        """更新stok."""
+        self._stok = await get_stok(self._base_url, self._username, self._password)
 
 
 def tp_encrypt(password):
