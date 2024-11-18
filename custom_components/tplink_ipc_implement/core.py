@@ -59,6 +59,10 @@ class TPLinkIPCCore:
                 self._stok = None
                 return await self.post_data(data, times + 1)
 
+            # 如果40210错误，重新发送数据
+            if data["error_code"] == -40210:
+                return await self.post_data(data, times + 1)
+
             # 如果有错误，打印错误信息
             if data["error_code"] != 0:
                 _LOGGER.error("Failed to post data: %s", data)
