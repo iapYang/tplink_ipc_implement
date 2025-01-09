@@ -38,7 +38,7 @@ class TPLinkIPCCore:
     async def post_data(self, data, times=1):
         """发送数据到TPLink IPC."""
 
-        if times > 3:
+        if times > 6:
             _LOGGER.error("Retry %s times", times - 1)
 
             return None
@@ -56,11 +56,13 @@ class TPLinkIPCCore:
 
             # 如果stok过期，重新获取stok
             if data["error_code"] == -40401:
-                self._stok = None
+                self._stok = None   
+                _LOGGER.error("stok expired, retry %s times", times)
                 return await self.post_data(data, times + 1)
 
             # 如果40210错误，重新发送数据
             if data["error_code"] == -40210:
+                _LOGGER.error("Failed to post data: %s", data)
                 return await self.post_data(data, times + 1)
 
             # 如果有错误，打印错误信息
