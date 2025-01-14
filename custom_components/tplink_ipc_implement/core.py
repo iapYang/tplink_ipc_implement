@@ -175,17 +175,20 @@ async def post_data(base_url, data, stok=""):
     url = base_url + (("/stok=" + stok + "/ds") if stok else "")
     _LOGGER.debug("post: %s data: %s", url, data)
 
-    # headers = {
-    #     "Content-Type": "application/json; charset=UTF-8",
-    #     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-    #     "Accept": "application/json, text/javascript, */*; q=0.01",
-    #     "X-Requested-With": "XMLHttpRequest",
-    #     "Referer": base_url + "/",
-    #     "Content-Length": str(len(data)),
-    # }
+    headers = {
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Pragma": "no-cache",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        "X-Requested-With": "XMLHttpRequest",
+    }
 
     async with (
-        aiohttp.ClientSession() as session,
+        aiohttp.ClientSession(headers=headers) as session,
         session.post(url, data=data) as response,
     ):
         _LOGGER.debug("response: %s %s", str(response.status), await response.text())
