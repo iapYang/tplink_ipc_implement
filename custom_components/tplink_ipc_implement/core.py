@@ -58,14 +58,13 @@ class TPLinkIPCCore:
 
             # 如果stok过期，重新获取stok
             if data["error_code"] == -40401:
-                self._stok = None   
                 _LOGGER.error("%s: stok expired, retry %s times", self._ip, times - 1)
+                await self.update_stok()
                 return await self.post_data(data, times + 1)
 
             # 如果40210错误，重新发送数据
             if data["error_code"] == -40210:
-                self._stok = None
-                _LOGGER.error("%s: Failed to post data: %s, retry %s times", self._ip, data, times - 1)
+                _LOGGER.error("%s: Failed to post data: %s, retry %s times, post data is %s, stok is %s", self._ip, data, times - 1, data, self._stok)
                 return await self.post_data(data, times + 1)
 
             # 如果有错误，打印错误信息
