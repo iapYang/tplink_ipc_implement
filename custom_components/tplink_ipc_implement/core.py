@@ -64,6 +64,7 @@ class TPLinkIPCCore:
 
             # 如果40210错误，重新发送数据
             if data["error_code"] == -40210:
+                self._stok = None
                 _LOGGER.error("%s: Failed to post data: %s, retry %s times", self._ip, data, times - 1)
                 return await self.post_data(data, times + 1)
 
