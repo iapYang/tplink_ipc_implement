@@ -84,25 +84,31 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """打开开关."""
-        _LOGGER.debug("Turning on the switch")
-        await self._ipc_core.post_data(
-            json.dumps(
-                {"method": "set", "lens_mask": {"lens_mask_info": {"enabled": "on"}}}
+        try:
+            _LOGGER.debug("Turning on the switch")
+            await self._ipc_core.post_data(
+                json.dumps(
+                    {"method": "set", "lens_mask": {"lens_mask_info": {"enabled": "on"}}}
+                )
             )
-        )
-        self._is_on = True
-        self.async_write_ha_state()
+            self._is_on = True
+            self.async_write_ha_state()
+        except Exception as e:
+            _LOGGER.error("Failed to turn on the switch: %s", e)
 
     async def async_turn_off(self, **kwargs) -> None:
         """关闭开关."""
-        _LOGGER.debug("Turning off the switch")
-        await self._ipc_core.post_data(
-            json.dumps(
-                {"method": "set", "lens_mask": {"lens_mask_info": {"enabled": "off"}}}
+        try:
+            _LOGGER.debug("Turning off the switch")
+            await self._ipc_core.post_data(
+                json.dumps(
+                    {"method": "set", "lens_mask": {"lens_mask_info": {"enabled": "off"}}}
+                )
             )
-        )
-        self._is_on = False
-        self.async_write_ha_state()
+            self._is_on = False
+            self.async_write_ha_state()
+        except Exception as e:
+            _LOGGER.error("Failed to turn off the switch: %s", e)
 
     async def async_added_to_hass(self):
         """当实体被添加到Home Assistant时调用."""
@@ -116,11 +122,15 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
 
     async def _update_is_on(self):
         """更新is_on状态."""
-        _LOGGER.debug("Updating the switch status")
-        data = await self._ipc_core.post_data(
-            json.dumps({"method": "get", "lens_mask": {"name": ["lens_mask_info"]}})
-        )
-        self._is_on = (
-            data.get("lens_mask", {}).get("lens_mask_info", {}).get("enabled") == "on"
-        )
-        self.async_write_ha_state()
+        try:
+            _LOGGER.debug("Updating the switch status")
+            data = await self._ipc_core.post_data(
+                json.dumps({"method": "get", "lens_mask": {"name": ["lens_mask_info"]}})
+            )
+            self._is_on = (
+                data.get("lens_mask", {}).get("lens_mask_info", {}).get("enabled") == "on"
+            )
+            self.async_write_ha_state()
+        except Exception as e:
+            _LOGGER.error("Failed to update switch status: %s", e)
+            
