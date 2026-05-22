@@ -81,7 +81,7 @@ class TPLinkIPCConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(_config_entry):
         """获取选项流."""
         return TPLinkIPCOptionsFlowHandler()
 
