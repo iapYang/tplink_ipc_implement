@@ -83,15 +83,11 @@ class TPLinkIPCConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """获取选项流."""
-        return TPLinkIPCOptionsFlowHandler(config_entry)
+        return TPLinkIPCOptionsFlowHandler()
 
 
 class TPLinkIPCOptionsFlowHandler(config_entries.OptionsFlow):
     """处理配置入口选项的类."""
-
-    def __init__(self, config_entry) -> None:
-        """初始化选项流处理器."""
-        self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         """管理选项流的入口."""
