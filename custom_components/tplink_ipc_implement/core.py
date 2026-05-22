@@ -5,13 +5,13 @@ This module provides the core functionality for interacting with tplink_ipc_impl
 
 import base64
 import binascii
+import asyncio
 import json
 import logging
 from urllib.parse import unquote
 
 import aiohttp
 from asn1crypto.keys import PublicKeyInfo
-import requests
 import rsa
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,7 +47,11 @@ class TPLinkIPCCore:
 
         # 目前观察下来stok的一段时间是固定的，所以这里不再每次都获取
         if not self._stok:
-            await self.update_stok()
+            try:
+                await self.update_stok()
+            except (aiohttp.ClientError, asyncio.TimeoutError, KeyError, TypeError) as e:
+                _LOGGER.error("%s: Failed to update stok: %s", self._ip, e)
+                return None
 
         try:
             res_data = await post_data(
@@ -55,24 +59,28 @@ class TPLinkIPCCore:
                 data,
                 self._stok,
             )
+            if not isinstance(res_data, dict):
+                _LOGGER.error("%s: Invalid response data: %s", self._ip, res_data)
+                return None
 
             # 如果stok过期，重新获取stok
-            if res_data["error_code"] == -40401:
+            error_code = res_data.get("error_code")
+            if error_code == -40401:
                 self._stok = None
                 _LOGGER.error("%s: stok expired, retry %s times", self._ip, times - 1)
                 return await self.post_data(data, times + 1)
 
             # 如果40210错误，重新发送数据
-            if res_data["error_code"] == -40210 | res_data["error_code"] == -10000:
+            if error_code in (-40210, -10000):
                 _LOGGER.error("%s: Failed to post data: %s, retry %s times, res data is %s", self._ip, data, times - 1, res_data)
                 return await self.post_data(data, times + 1)
 
             # 如果有错误，打印错误信息
-            if res_data["error_code"] != 0:
+            if error_code != 0:
                 _LOGGER.error("%s: Failed to post data: %s, retry %s times, res data is %s", self._ip, data, times - 1, res_data)
             else:
                 return res_data
-        except requests.exceptions.RequestException as e:
+        except (aiohttp.ClientError, asyncio.TimeoutError, KeyError, TypeError) as e:
             _LOGGER.error("%s: Failed to post data: %s, error is %s", self._ip, data, e)
 
     async def update_stok(self):
@@ -187,8 +195,10 @@ async def post_data(base_url, data, stok=""):
         "X-Requested-With": "XMLHttpRequest",
     }
 
+    timeout = aiohttp.ClientTimeout(total=10)
+
     async with (
-        aiohttp.ClientSession(headers=headers) as session,
+        aiohttp.ClientSession(headers=headers, timeout=timeout) as session,
         session.post(url, data=data) as response,
     ):
         _LOGGER.debug("response: %s %s", str(response.status), await response.text())

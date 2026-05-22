@@ -4,6 +4,7 @@ This module provides the device for interacting with tplink_ipc_implement device
 """
 
 import json
+import logging
 import urllib.parse
 
 from homeassistant.config_entries import ConfigEntry
@@ -11,6 +12,8 @@ from homeassistant.helpers.entity import DeviceInfo
 
 from .const import DOMAIN
 from .core import TPLinkIPCCore
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class TPLinkIPCDevice:
@@ -23,19 +26,24 @@ class TPLinkIPCDevice:
 
     async def get_device_info(self):
         """Get device info."""
-        device_data = await self._ipc_core.post_data(
-            json.dumps(
-                {"method": "get", "device_info": {"name": ["basic_info", "info"]}}
+        try:
+            device_data = await self._ipc_core.post_data(
+                json.dumps(
+                    {"method": "get", "device_info": {"name": ["basic_info", "info"]}}
+                )
             )
-        )
+        except Exception as e:
+            _LOGGER.error("Failed to get device info: %s", e)
+            device_data = None
 
-        base_info = device_data.get("device_info", {}).get("basic_info", {})
+        base_info = (device_data or {}).get("device_info", {}).get("basic_info", {})
+        sw_version = base_info.get("sw_version")
 
         device_info_data = {
             "manufacturer": base_info.get("manufacturer_name"),
             "model": base_info.get("device_model"),
             "default_name": base_info.get("device_name"),
-            "sw_version": urllib.parse.unquote(base_info.get("sw_version")),
+            "sw_version": urllib.parse.unquote(sw_version) if sw_version else None,
             "hw_version": base_info.get("hw_version"),
         }
 

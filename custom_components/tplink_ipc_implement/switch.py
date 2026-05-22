@@ -61,6 +61,7 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
         ).lower()
         self.entity_id = self._attr_unique_id
         self._update_task = None
+        self._attr_available = True
 
     @property
     def name(self) -> str:
@@ -92,9 +93,12 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
                 )
             )
             self._is_on = True
+            self._attr_available = True
             self.async_write_ha_state()
         except Exception as e:
+            self._attr_available = False
             _LOGGER.error("Failed to turn on the switch: %s", e)
+            self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
         """关闭开关."""
@@ -106,13 +110,22 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
                 )
             )
             self._is_on = False
+            self._attr_available = True
             self.async_write_ha_state()
         except Exception as e:
+            self._attr_available = False
             _LOGGER.error("Failed to turn off the switch: %s", e)
+            self.async_write_ha_state()
 
     async def async_added_to_hass(self):
         """当实体被添加到Home Assistant时调用."""
-        self._update_task = asyncio.create_task(self._periodic_update())
+        self._update_task = self.hass.async_create_task(self._periodic_update())
+
+    async def async_will_remove_from_hass(self):
+        """当实体从Home Assistant移除时调用."""
+        if self._update_task:
+            self._update_task.cancel()
+            self._update_task = None
 
     async def _periodic_update(self):
         """每30秒更新一次is_on状态."""
@@ -130,7 +143,9 @@ class TPLinkIPCLensMaskSwitch(SwitchEntity):
             self._is_on = (
                 data.get("lens_mask", {}).get("lens_mask_info", {}).get("enabled") == "on"
             )
+            self._attr_available = True
             self.async_write_ha_state()
         except Exception as e:
+            self._attr_available = False
             _LOGGER.error("Failed to update switch status: %s", e)
-            
+            self.async_write_ha_state()
